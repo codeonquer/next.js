@@ -41,12 +41,16 @@ export default function onDemandEntryHandler(
     pagesBufferLength: number
   }
 ) {
+  // 获取 webpack 配置的多个 compilers
   const { compilers } = multiCompiler
+
+  // 编译状态检测
   const invalidator = new Invalidator(watcher, multiCompiler)
 
   let lastAccessPages = ['']
   let doneCallbacks: EventEmitter | null = new EventEmitter()
 
+  // 在 webpack 添加
   for (const compiler of compilers) {
     compiler.hooks.make.tap(
       'NextJsOnDemandEntries',

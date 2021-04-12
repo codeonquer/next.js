@@ -54,6 +54,9 @@ export async function renderScriptError(
   res.end('500 - Internal Error')
 }
 
+/**
+ * 增加跨域访问的功能
+ */
 function addCorsSupport(req: IncomingMessage, res: ServerResponse) {
   const isApiRoute = req.url!.match(API_ROUTE)
   // API routes handle their own CORS headers
@@ -146,11 +149,11 @@ export default class HotReloader {
   private rewrites: Rewrite[]
 
   constructor(
-    dir: string,
+    dir: string, // 用户设定的运行目录
     {
-      config,
-      pagesDir,
-      buildId,
+      config, // next-config 用于 webpack 的配置
+      pagesDir, // pages 的目录
+      buildId, // 构建的 buildId
       previewProps,
       rewrites,
     }: {
@@ -253,6 +256,9 @@ export default class HotReloader {
     return { finished }
   }
 
+  /*
+   * 清除之前构建的缓存 
+   */
   private async clean(): Promise<void> {
     return recursiveDelete(join(this.dir, this.config.distDir), /^cache/)
   }
@@ -277,6 +283,7 @@ export default class HotReloader {
     )
 
     return Promise.all([
+      // 客户端构建的 webpack 配置
       getBaseWebpackConfig(this.dir, {
         dev: true,
         isServer: false,
@@ -286,6 +293,7 @@ export default class HotReloader {
         rewrites: this.rewrites,
         entrypoints: entrypoints.client,
       }),
+      // 服务器端构建的 webpack 配置
       getBaseWebpackConfig(this.dir, {
         dev: true,
         isServer: true,
@@ -301,6 +309,7 @@ export default class HotReloader {
   public async start(): Promise<void> {
     await this.clean()
 
+    // 获取 客户端 + 服务器端 构建的 webpack 配置
     const configs = await this.getWebpackConfig()
 
     for (const config of configs) {
@@ -346,6 +355,7 @@ export default class HotReloader {
       }
     }
 
+    // 这里直接用了数组的形式，所以动态 entry 也是支持数组形式的
     const multiCompiler = webpack(configs)
 
     watchCompilers(multiCompiler.compilers[0], multiCompiler.compilers[1])
