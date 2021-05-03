@@ -6,10 +6,15 @@ export default async function start(
   port?: number,
   hostname?: string
 ) {
+
+  // dev 下传递参数为
+  // { dir: '.', dev: true, isNextDevCommand: true }, port: '3000', host: '0.0.0.0'
+
   const app = next({
     ...serverOptions,
     customServer: false,
   })
+
   const srv = http.createServer(app.getRequestHandler())
   await new Promise<void>((resolve, reject) => {
     // This code catches EADDRINUSE error if the port is already in use

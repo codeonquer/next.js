@@ -126,18 +126,18 @@ export type ServerConstructor = {
 export default class Server {
   protected dir: string
   protected quiet: boolean
-  protected nextConfig: NextConfig
+  protected nextConfig: NextConfig // next-server/server/config 中 loadConfig 函数获取
   protected distDir: string
-  protected pagesDir?: string
+  protected pagesDir?: string // pages 目录所在的位置
   protected publicDir: string
   protected hasStaticDir: boolean
   protected serverBuildDir: string
   protected pagesManifest?: PagesManifest
-  protected buildId: string
+  protected buildId: string // 构建 id
   protected minimalMode: boolean
   protected renderOpts: {
     poweredByHeader: boolean
-    buildId: string
+    buildId: string // 构建 id
     generateEtags: boolean
     runtimeConfig?: { [key: string]: any }
     assetPrefix?: string
@@ -313,8 +313,12 @@ export default class Server {
     if (typeof parsedUrl.query === 'string') {
       parsedUrl.query = parseQs(parsedUrl.query)
     }
+
+    // 对刚进页面的 query 进行记录
+    // 之后 query 被修改之后，还可以进行查询
     ;(req as any).__NEXT_INIT_QUERY = Object.assign({}, parsedUrl.query)
 
+    // 默认 basePath = ''
     if (basePath && req.url?.startsWith(basePath)) {
       // store original URL to allow checking if basePath was
       // provided or not

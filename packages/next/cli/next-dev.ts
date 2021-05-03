@@ -9,6 +9,7 @@ import { startedDevelopmentServer } from '../build/output'
 import { cliCommand } from '../bin/next'
 
 const nextDev: cliCommand = (argv) => {
+  // 命令行参数检测
   const validArgs: arg.Spec = {
     // Types
     '--help': Boolean,
@@ -49,6 +50,7 @@ const nextDev: cliCommand = (argv) => {
     process.exit(0)
   }
 
+  // 默认根目录
   const dir = resolve(args._[0] || '.')
 
   // Check if pages dir exists and warn if not
@@ -56,6 +58,10 @@ const nextDev: cliCommand = (argv) => {
     printAndExit(`> No such directory exists as the project root: ${dir}`)
   }
 
+  // preflight 起飞前
+  // 很形象的命名了
+  // 检测 react 和 react-dom 的版本
+  // 检测 sass 和 node-sass 是不是共存（建议保留 sass)
   async function preflight() {
     const { getPackageVersion } = await import('../lib/get-package-version')
     const semver = await import('next/dist/compiled/semver').then(

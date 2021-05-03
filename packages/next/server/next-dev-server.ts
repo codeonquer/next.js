@@ -67,7 +67,7 @@ export default class DevServer extends Server {
   ) {
     super({ ...options, dev: true })
 
-    // renderOpts 的定义
+    // renderOpts 的定义，this.renderOpts 源于 Server
     this.renderOpts.dev = true
     ;(this.renderOpts as any).ErrorDebug = ReactDevOverlay
     this.devReady = new Promise((resolve) => {

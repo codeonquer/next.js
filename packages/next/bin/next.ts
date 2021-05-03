@@ -2,6 +2,8 @@
 import * as log from '../build/output/log'
 import arg from 'next/dist/compiled/arg/index.js'
 import { NON_STANDARD_NODE_ENV } from '../lib/constants'
+
+// 确保 react react-dom 已经被安装
 ;['react', 'react-dom'].forEach((dependency) => {
   try {
     // When 'npm link' is used it checks the clone location. Not the project.
@@ -15,6 +17,7 @@ import { NON_STANDARD_NODE_ENV } from '../lib/constants'
 
 const defaultCommand = 'dev'
 export type cliCommand = (argv?: string[]) => void
+// 这里使用了 node 端的动态加载
 const commands: { [command: string]: () => Promise<cliCommand> } = {
   build: () => import('../cli/next-build').then((i) => i.nextBuild),
   start: () => import('../cli/next-start').then((i) => i.nextStart),
@@ -96,6 +99,7 @@ if (process.env.NODE_ENV && !standardEnv.includes(process.env.NODE_ENV)) {
 // else it might cause SSR to break
 const React = require('react')
 
+// nextjs 依赖要求 React.Suspense
 if (typeof React.Suspense === 'undefined') {
   throw new Error(
     `The version of React you are using is lower than the minimum required version needed for Next.js. Please upgrade "react" and "react-dom": "npm install react react-dom" https://nextjs.org/docs/messages/invalid-react-version`
@@ -116,6 +120,7 @@ commands[command]()
     }
   })
 
+// dev 情况下要监控 server 常量的变化，提醒重启
 if (command === 'dev') {
   const { CONFIG_FILE } = require('../next-server/lib/constants')
   const { watchFile } = require('fs')

@@ -131,10 +131,10 @@ function erroredPages(compilation: webpack.compilation.Compilation) {
 }
 
 export default class HotReloader {
-  private dir: string
-  private buildId: string
+  private dir: string // 根目录，用户设定的运行目录
+  private buildId: string // 构建 id
   private middlewares: any[]
-  private pagesDir: string
+  private pagesDir: string // pages 目录所在的位置
   private webpackHotMiddleware: (NextHandleFunction & any) | null
   private config: NextConfig
   private stats: webpack.Stats | null
@@ -149,9 +149,9 @@ export default class HotReloader {
   private rewrites: CustomRoutes['rewrites']
 
   constructor(
-    dir: string, // 用户设定的运行目录
+    dir: string, // 根目录，用户设定的运行目录
     {
-      config, // next-config 用于 webpack 的配置
+      config, // next-config 用于 next.js（包括 webpack） 的配置
       pagesDir, // pages 的目录
       buildId, // 构建的 buildId
       previewProps,
@@ -264,15 +264,39 @@ export default class HotReloader {
   }
 
   private async getWebpackConfig() {
+    // 默认自己没有定义
+    // 返回 [ null, null ]
     const pagePaths = await Promise.all([
       findPageFile(this.pagesDir, '/_app', this.config.pageExtensions),
       findPageFile(this.pagesDir, '/_document', this.config.pageExtensions),
     ])
 
+    // 返回
+    // {
+    //   '/_app': 'next/dist/pages/_app',
+    //   '/_error': 'next/dist/pages/_error',
+    //   '/_document': 'next/dist/pages/_document'
+    // }
     const pages = createPagesMapping(
       pagePaths.filter((i) => i !== null) as string[],
       this.config.pageExtensions
     )
+
+    // 返回
+    // {
+    //   client: {
+    //     'pages/_app': [
+    //       'next-client-pages-loader?page=%2F_app&absolutePagePath=next%2Fdist%2Fpages%2F_app!',
+    //       '/Users/yangpeng/code/@test/test-next/node_modules/next/dist/client/router.js'
+    //     ],
+    //     'pages/_error': 'next-client-pages-loader?page=%2F_error&absolutePagePath=next%2Fdist%2Fpages%2F_error!'
+    //   },
+    //   server: {
+    //     'pages/_app': [ 'next/dist/pages/_app' ],
+    //     'pages/_error': [ 'next/dist/pages/_error' ],
+    //     'pages/_document': [ 'next/dist/pages/_document' ]
+    //   }
+    // }
     const entrypoints = createEntrypoints(
       pages,
       'server',
@@ -322,21 +346,27 @@ export default class HotReloader {
 
         await Promise.all(
           Object.keys(entries).map(async (page) => {
+            // api 接口不需要打包
             if (isClientCompilation && page.match(API_ROUTE)) {
               return
             }
+
+            // 获取打包路径
             const {
               serverBundlePath,
               clientBundlePath,
               absolutePagePath,
             } = entries[page]
             const pageExists = await isWriteable(absolutePagePath)
+
+            // 如果打包路径不存在了，说明入口被删除了
             if (!pageExists) {
               // page was removed
               delete entries[page]
               return
             }
 
+            // 打包状态更改为 BUILDING
             entries[page].status = BUILDING
             const pageLoaderOpts: ClientPagesLoaderOptions = {
               page,

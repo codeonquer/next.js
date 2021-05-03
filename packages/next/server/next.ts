@@ -25,6 +25,8 @@ export class NextServer {
   options: NextServerConstructor
 
   constructor(options: NextServerConstructor) {
+    // dev 下传递参数为
+    // { dir: '.', dev: true, isNextDevCommand: true, customServer: false }
     this.options = options
   }
 
@@ -144,6 +146,9 @@ export class NextServer {
 
 // This file is used for when users run `require('next')`
 function createServer(options: NextServerConstructor): NextServer {
+  // dev 下传递参数为
+  // { dir: '.', dev: true, isNextDevCommand: true, customServer: false }
+
   const standardEnv = ['production', 'development', 'test']
 
   if (options == null) {
